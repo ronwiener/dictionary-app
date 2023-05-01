@@ -38,7 +38,7 @@ const ResultList = () => {
         });
       })
       .catch((error) => {
-        setError((error) => alert("This word is not in my dictionary"));
+        setError((error) => alert("This word is not in my dictionary 🥲"));
         setLoading(false);
       });
   };
