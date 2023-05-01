@@ -1,16 +1,8 @@
-const MeaningList = ({ mean }) => {
-  console.log(mean);
+const MeaningList = ({ response }) => {
+  console.log(response);
   return (
     <div>
-      {mean.map((val) =>
-        val.meanings.map((means) =>
-          means.definitions.map((def) => (
-            <div key={def.definition}>
-              <li>{def.definition}</li>
-            </div>
-          ))
-        )
-      )}
+      <p className="text-xl text-blue-800">{response.definition}</p>
     </div>
   );
 };

@@ -50,10 +50,10 @@ const Header = () => {
         </div>
 
         {inputValue && (
-          <h3 className="text-gray-50 text-center mt-4">
+          <p className="text-2xl text-gray-50 text-center mt-4">
             Result for:{" "}
             <span className="text-white font-bold">{inputValue}</span>
-          </h3>
+          </p>
         )}
       </div>
     </div>

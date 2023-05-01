@@ -1,71 +1,76 @@
 import { useContext, useEffect, useState } from "react";
 import { InputContext } from "../App";
-import axios from "axios";
 import MeaningList from "./MeaningList";
-import Example from "./Example";
-import Synonym from "./Synonym";
-import Antonym from "./Antonym";
-
-axios.defaults.baseURL = "https://api.dictionaryapi.dev/api/v2/entries/en";
+import PartOfSpeech from "./PartOfSpeech";
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import IconButton from "@mui/material/IconButton";
+import Alert from "@mui/material/Alert";
 
 const ResultList = () => {
   const { inputValue } = useContext(InputContext);
-  const [response, setResponse] = useState(null);
+  const [response, setResponse] = useState({
+    word: "",
+    definition: "",
+    partOfSpeech: "",
+    phonetic: "",
+    phoneticSound: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchData = async (param) => {
-    try {
-      setLoading(true);
-      const res = await axios(`/${param}`);
-      setResponse(res.data);
-      setError(null);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
+  const getWord = () => {
+    fetch(
+      `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${inputValue}?key=ebf3f298-19ef-4bb0-84be-53dee7a921dd`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setLoading(true);
+        setError(false);
+        setResponse({
+          word: inputValue.toLowerCase(),
+          definition: data[0].shortdef.map((def, idx) => {
+            return <li key={idx}>{def}</li>;
+          }),
+          partOfSpeech: data[0].fl,
+          phoneticSound: `https://media.merriam-webster.com/audio/prons/en/us/mp3/${inputValue
+            .charAt(0)
+            .toLowerCase()}/${data[0].hwi.prs[0].sound.audio}.mp3`,
+        });
+      })
+      .catch((error) => {
+        setError((error) => alert("This word is not in my dictionary"));
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
     if (inputValue.length) {
-      fetchData(inputValue);
+      getWord(inputValue);
     }
-  }, [inputValue]);
+  }, [inputValue.length]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col space-y-3 animate-pulse p-4 container mx-auto max-w-2xl">
-        <div className="h-6 bg-gray-300 mt-5 rounded-md"></div>
-        <div className="h-40 bg-gray-300 mt-5 rounded-md"></div>
-        <div className="h-8 bg-gray-300 mt-5 rounded-md"></div>
-        <div className="h-40 bg-gray-300 mt-5 rounded-md"></div>
-      </div>
-    );
-  }
+  const audio = new Audio(`${response.phoneticSound}`);
 
-  if (error) {
-    return (
-      <h3 className="text-center mt-10 font-semibold text-gray-500">
-        No Definition found 🥲
-      </h3>
-    );
-  }
+  const playSound = () => {
+    audio.play();
+  };
 
   return (
     <div className="container mx-auto p-4 max-w-2xl">
-      {response && (
+      {loading ? (
         <div>
-          <h3 className="text-2xl font-bold mt-4">Definition:</h3>
-          <MeaningList mean={response} />
-          <h3 className="text-2xl font-bold mt-4">Example:</h3>
-          <Example mean={response} />
-          <h3 className="text-2xl font-bold mt-4">Synonym:</h3>
-          <Synonym mean={response} />
-          <h3 className="text-2xl font-bold mt-4">Antonym:</h3>
-          <Antonym mean={response} />
+          <IconButton
+            onClick={() => playSound()}
+            className="speaker speaker-off"
+          >
+            <VolumeUpIcon style={{ fontSize: "2em", color: "blue" }} />
+          </IconButton>
+          <h3 className="text-xl font-bold mt-4">Definition:</h3>
+          <MeaningList response={response} />
+          <h3 className="text-xl font-bold mt-4">Part of Speech:</h3>
+          <PartOfSpeech response={response} />
         </div>
-      )}
+      ) : undefined}
     </div>
   );
 };
